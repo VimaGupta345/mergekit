@@ -1,0 +1,12 @@
+models:
+  - model: WizardLM/WizardMath-7B-V1.1
+    parameters:
+      weight: 0.5
+  - model: augmxnt/shisa-gamma-7b-v1
+    parameters:
+      weight: 0.5
+  - model: GAIR/Abel-7B-002
+    parameters:
+      weight: 0.5
+merge_method: linear
+dtype: float16
