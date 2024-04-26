@@ -23,6 +23,10 @@ from mergekit.config import MergeConfiguration
 from mergekit.merge import run_merge
 from mergekit.options import MergeOptions, add_merge_options
 
+import torch
+import torch.cuda
+
+from mergekit.metric_logging import TaskLoggingContextManagerGPU
 
 @click.command("mergekit-yaml")
 @click.argument("config_file")
@@ -46,18 +50,18 @@ def main(
         yaml.safe_load(config_source)
     )
 
+    torch.cuda.reset_peak_memory_stats()
+
     # compute time taken in this step
     # Start timing
-    start_time = time.time()
-    run_merge(
-        merge_config,
-        out_path,
-        options=merge_options,
-        config_source=config_source,
-    )
-    end_time = time.time()
-    elapsed_time = end_time - start_time
-    print(f"Elapsed time: {elapsed_time} seconds")
+    #start_time = time.time()
+    with TaskLoggingContextManagerGPU(task_type="MERGE_TOTAL"):
+        run_merge(
+            merge_config,
+            out_path,
+            options=merge_options,
+            config_source=config_source,
+        )
 
 if __name__ == "__main__":
     main()

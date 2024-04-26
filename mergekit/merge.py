@@ -20,6 +20,9 @@ from typing import Optional
 import tqdm
 import transformers
 
+import mergekit.metric_logging
+from mergekit.metric_logging import TaskLoggingContextManagerCPU, TaskLoggingContextManagerGPU
+
 from mergekit.architecture import ArchitectureInfo, get_architecture_info
 from mergekit.card import generate_card
 from mergekit.config import MergeConfiguration
@@ -77,11 +80,23 @@ def run_merge(
         out_model_config=cfg_out,
     ).plan()
 
-    exec = Executor(
-        tasks=targets,
-        math_device="cuda" if options.cuda else "cpu",
-        storage_device="cuda" if options.low_cpu_memory else "cpu",
-    )
+    if options.cuda:
+        task_name = "MERGE_TOTAL_GPU"
+        with TaskLoggingContextManagerGPU(task_type=task_name):
+            exec = Executor(
+                tasks=targets,
+                math_device="cuda" if options.cuda else "cpu",
+                storage_device="cuda" if options.low_cpu_memory else "cpu",
+            )
+    else:
+        task_name = "MERGE_TOTAL_CPU"
+        with TaskLoggingContextManagerCPU(task_type=task_name):
+            exec = Executor(
+                tasks=targets,
+                math_device="cuda" if options.cuda else "cpu",
+                storage_device="cuda" if options.low_cpu_memory else "cpu",
+            )
+
 
     tokenizer = None
     for _task, value in exec.run():

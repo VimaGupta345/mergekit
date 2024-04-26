@@ -28,6 +28,7 @@ def if_enabled(func):
 class TaskType(Enum):
    MERGE_TOTAL_GPU = auto()
    MERGE_TOTAL_CPU = auto()
+   MERGE_TOTAL = auto()
    MERGE_PLANNER = auto()
    MERGE_STEP = auto()
 
@@ -67,6 +68,22 @@ class TaskLoggingContextManagerCPU:
         if exc_type is not None:
             print(f"An error occurred: {exc_value}")
         #print(f"{self.task_type} took {elapsed_time} s")
+
+# Define context manager using torch.cuda.memory_stats for obtaining peak memory usage
+class MemoryLoggingContextManager:
+    def __init__(self) -> None:
+        self.start_memory = None
+        self.end_memory = None
+
+    def __enter__(self):
+        self.start_memory = torch.cuda.memory_stats()["allocated_bytes.all.peak"]
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.end_memory = torch.cuda.memory_stats()["allocated_bytes.all.peak"]
+        memory_usage = self.end_memory - self.start_memory
+        torch.cuda.reset_peak_memory_stats()
+        print(f"Peak memory usage: {memory_usage} bytes")
 
 """This class is a singleton. It stores the metrics for each task type."""
 class MetricStore:
@@ -125,7 +142,7 @@ class MetricStore:
         torch.cuda.synchronize()  # Ensure all prior operations on the default stream are complete before calculations
 
         for task_type, measurements in list(self.raw_metrics.items()):
-            if task_type == TaskType.SCHEDULE_ITERATION: ## if using CPU
+            if task_type == TaskType.MERGE_TOTAL: ## if using CPU
                 continue  # Skip processing for specific task types if needed
             
             for measurement in measurements:
