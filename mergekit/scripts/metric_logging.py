@@ -10,6 +10,7 @@ from enum import Enum, auto
 from typing import Union
 from datetime import datetime
 from transformers import MixtralConfig
+import atexit
 
 # define a constant for plotting dir
 PLOTTING_DIR = "./profiling_output"
@@ -103,6 +104,7 @@ class MetricStore:
         self.full_path = os.path.join(PLOTTING_DIR, f"plots_{current_datetime}")
         # Use os.makedirs to create the directory, including all necessary parent directories
         os.makedirs(self.full_path, exist_ok=True)
+        atexit.register(self.after_merge)
 
     @classmethod
     def get_instance(cls):
