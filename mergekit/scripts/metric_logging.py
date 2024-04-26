@@ -160,7 +160,7 @@ class MetricStore:
                 try:
                     # Calculate elapsed time. Ensure both are CUDA events; otherwise, an exception will be thrown
                     elapsed_time = start_event.elapsed_time(end_event)
-                    print(f"{task_type} took {elapsed_time} ms")
+                    print(f"{task_type} took {elapsed_time} ms",flush=True)
                     self.add_metric_cpu(task_type, elapsed_time)
                 except AttributeError as e:
                     print(f"Error processing measurement for {task_type}: {e}")
