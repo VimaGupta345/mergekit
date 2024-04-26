@@ -26,6 +26,7 @@ def if_enabled(func):
 class TaskType(Enum):
    MERGE_TOTAL_GPU = auto()
    MERGE_TOTAL_CPU = auto()
+   MERGE_MEMORY = auto()
    MERGE_TOTAL = auto()
    MERGE_PLANNER = auto()
    MERGE_STEP = auto()
@@ -81,8 +82,9 @@ class MemoryLoggingContextManager:
     def __exit__(self, exc_type, exc_value, traceback):
         self.end_memory = torch.cuda.memory_stats()["allocated_bytes.all.peak"]
         memory_usage = self.end_memory - self.start_memory
-        torch.cuda.reset_peak_memory_stats()
         print(f"Peak memory usage: {memory_usage} bytes")
+        torch.cuda.reset_peak_memory_stats()
+        
 
 """This class is a singleton. It stores the metrics for each task type."""
 class MetricStore:
@@ -92,6 +94,7 @@ class MetricStore:
         self.metrics = {}
         self.raw_metrics = {}
         self.disable = True
+        self.memory_usage = 0
         # Get the current date and time
         current_datetime = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         # Define the full path including the base directory and the new subdirectory with date and time
@@ -127,12 +130,16 @@ class MetricStore:
     @if_enabled
     def add_metric_cpu(self, task_type: TaskType, elapsed_time: float) -> None:
         if task_type not in self.metrics:
-            self.metrics[task_type] = CDFSketch(metric_name=task_type, save_table_to_wandb=False)
+            self.metrics[task_type] = elapsed_time
         self.metrics[task_type].put(elapsed_time)
     
     @if_enabled
     def get_metrics(self) -> dict:
         return self.metrics
+    
+    @if_enabled
+    def set_memory_usage(self, memory_usage: int) -> None:
+        self.memory_usage = memory_usage
     
 
     ### replace this with cpu task value
@@ -166,6 +173,8 @@ class MetricStore:
     @if_enabled
     def plot_metrics(self):
         wandb.init(project="model-merging", group="across tasks")
+        wandb.log(self.metrics)
+        wandb.log("Memory use",self.memory_usage)
         for task_type, measurements in self.metrics.items():
             print("Logging metrics")
             #measurements.plot_cdf(self.full_path, f"{task_type}","size")
