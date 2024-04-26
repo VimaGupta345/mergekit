@@ -26,7 +26,7 @@ from mergekit.options import MergeOptions, add_merge_options
 import torch
 import torch.cuda
 
-from mergekit.metric_logging import TaskLoggingContextManagerGPU
+from mergekit.metric_logging import TaskLoggingContextManagerGPU, MemoryLoggingContextManager
 
 @click.command("mergekit-yaml")
 @click.argument("config_file")
@@ -56,12 +56,13 @@ def main(
     # Start timing
     #start_time = time.time()
     with TaskLoggingContextManagerGPU(task_type="MERGE_TOTAL"):
-        run_merge(
-            merge_config,
-            out_path,
-            options=merge_options,
-            config_source=config_source,
-        )
+        with MemoryLoggingContextManager():
+            run_merge(
+                merge_config,
+                out_path,
+                options=merge_options,
+                config_source=config_source,
+            )
 
 if __name__ == "__main__":
     main()
