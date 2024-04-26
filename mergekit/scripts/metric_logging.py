@@ -18,7 +18,7 @@ PLOTTING_DIR = "./profiling_output"
 
 def if_enabled(func):
     def wrapper(self, *args, **kwargs):
-        if not self.disable and self.profile_complete:
+        if not self.disable:
             return func(self, *args, **kwargs)
  
     return wrapper
@@ -96,7 +96,7 @@ class MetricStore:
         super(MetricStore, self).__init__()
         self.metrics = {}
         self.raw_metrics = {}
-        self.disable = True
+        self.disable = False
         self.memory_usage = 0
         # Get the current date and time
         current_datetime = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
