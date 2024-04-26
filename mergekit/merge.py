@@ -72,13 +72,15 @@ def run_merge(
         loader_cache.get(model)
 
     logging.info("Planning operations")
-    targets = MergePlanner(
-        merge_config,
-        arch_info,
-        out_path=out_path,
-        options=options,
-        out_model_config=cfg_out,
-    ).plan()
+
+    with TaskLoggingContextManagerGPU(task_type="MERGE_PLANNER"):
+        targets = MergePlanner(
+            merge_config,
+            arch_info,
+            out_path=out_path,
+            options=options,
+            out_model_config=cfg_out,
+        ).plan()
 
     if options.cuda:
         task_name = "MERGE_TOTAL_GPU"
