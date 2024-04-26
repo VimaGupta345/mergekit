@@ -134,8 +134,8 @@ class MetricStore:
     @if_enabled
     def add_metric_cpu(self, task_type: TaskType, elapsed_time: float) -> None:
         if task_type not in self.metrics:
-            self.metrics[task_type] = elapsed_time
-        self.metrics[task_type].put(elapsed_time)
+            self.metrics[task_type] = [elapsed_time]
+        self.metrics[task_type].append(elapsed_time)
     
     @if_enabled
     def get_metrics(self) -> dict:
