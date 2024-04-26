@@ -6,8 +6,6 @@ import io
 import numpy as np
 import os
 import matplotlib.pyplot as plt
-from .cdf_sketch import CDFSketch
-from ddsketch import DDSketch
 from enum import Enum, auto
 from typing import Union
 from datetime import datetime
@@ -65,6 +63,7 @@ class TaskLoggingContextManagerCPU:
         self.end_time = time.perf_counter()
         elapsed_time = self.end_time - self.start_time
         MetricStore.get_instance().add_metric_cpu(self.task_type, elapsed_time)
+        print(f"{self.task_type} took {elapsed_time} s")
         if exc_type is not None:
             print(f"An error occurred: {exc_value}")
         #print(f"{self.task_type} took {elapsed_time} s")
@@ -150,6 +149,7 @@ class MetricStore:
                 try:
                     # Calculate elapsed time. Ensure both are CUDA events; otherwise, an exception will be thrown
                     elapsed_time = start_event.elapsed_time(end_event)
+                    print(f"{task_type} took {elapsed_time} ms")
                     self.add_metric_cpu(task_type, elapsed_time)
                 except AttributeError as e:
                     print(f"Error processing measurement for {task_type}: {e}")
@@ -167,5 +167,6 @@ class MetricStore:
     def plot_metrics(self):
         wandb.init(project="model-merging", group="across tasks")
         for task_type, measurements in self.metrics.items():
-            measurements.plot_cdf(self.full_path, f"{task_type}","size")
+            print("Logging metrics")
+            #measurements.plot_cdf(self.full_path, f"{task_type}","size")
         wandb.finish()
