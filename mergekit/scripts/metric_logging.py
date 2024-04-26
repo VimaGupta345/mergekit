@@ -82,7 +82,9 @@ class MemoryLoggingContextManager:
     def __exit__(self, exc_type, exc_value, traceback):
         self.end_memory = torch.cuda.memory_stats()["allocated_bytes.all.peak"]
         memory_usage = self.end_memory - self.start_memory
-        print(f"Peak memory usage: {memory_usage} bytes")
+        # let's convert the memory usage to GB
+        memory_usage = memory_usage / 1024**3
+        print(f"Peak memory usage: {memory_usage} GB")
         torch.cuda.reset_peak_memory_stats()
         
 
