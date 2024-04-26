@@ -17,6 +17,7 @@ import logging
 
 import click
 import yaml
+import time
 
 from mergekit.config import MergeConfiguration
 from mergekit.merge import run_merge
@@ -44,13 +45,19 @@ def main(
     merge_config: MergeConfiguration = MergeConfiguration.model_validate(
         yaml.safe_load(config_source)
     )
+
+    # compute time taken in this step
+    # Start timing
+    start_time = time.time()
     run_merge(
         merge_config,
         out_path,
         options=merge_options,
         config_source=config_source,
     )
-
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    print(f"Elapsed time: {elapsed_time} seconds")
 
 if __name__ == "__main__":
     main()
